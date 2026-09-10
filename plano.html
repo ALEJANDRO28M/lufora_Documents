@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Documentacion tecnica del backend de LUFORA S.A.S.">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>Plano del backend LUFORA</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+  :root {
+    --ground:  #F5F6FB;
+    --surface: #FFFFFF;
+    --sunken:  #EDEFF8;
+    --ink:     #141B36;
+    --muted:   #5C6588;
+    --line:    #DFE3F1;
+
+    --navy:   #1B2A6B;
+    --indigo: #474EC9;
+    --teal:   #1F87AC;
+
+    --navy-fill:   #E6EAF6;
+    --indigo-fill: #ECEDFB;
+    --teal-fill:   #E2F2F8;
+
+    --hecho:      #14795C;
+    --hecho-fill: #DCF2EA;
+    --ahora:      #9A6B12;
+    --ahora-fill: #FBF1DC;
+    --alerta:     #A33A2A;
+    --alerta-fill:#FBE7E3;
+
+    --radius: 10px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:  #0D1230;
+      --surface: #161D42;
+      --sunken:  #111739;
+      --ink:     #E9EBF8;
+      --muted:   #99A1C9;
+      --line:    #2A3163;
+
+      --navy:   #8B95EE;
+      --indigo: #8F94F2;
+      --teal:   #4FC5E9;
+
+      --navy-fill:   #1D2551;
+      --indigo-fill: #222859;
+      --teal-fill:   #14344A;
+
+      --hecho:      #4FD1A5;
+      --hecho-fill: #123A2E;
+      --ahora:      #E0B662;
+      --ahora-fill: #2E2716;
+      --alerta:     #F0907E;
+      --alerta-fill:#3A1C17;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:  #0D1230;
+    --surface: #161D42;
+    --sunken:  #111739;
+    --ink:     #E9EBF8;
+    --muted:   #99A1C9;
+    --line:    #2A3163;
+
+    --navy:   #8B95EE;
+    --indigo: #8F94F2;
+    --teal:   #4FC5E9;
+
+    --navy-fill:   #1D2551;
+    --indigo-fill: #222859;
+    --teal-fill:   #14344A;
+
+    --hecho:      #4FD1A5;
+    --hecho-fill: #123A2E;
+    --ahora:      #E0B662;
+    --ahora-fill: #2E2716;
+    --alerta:     #F0907E;
+    --alerta-fill:#3A1C17;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.62;
+    margin: 0;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding-inline: 20px; padding-block: 46px 76px; }
+
+  code, .mono { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
+
+  header { margin-bottom: 40px; }
+
+  .eyebrow {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--indigo); margin: 0 0 12px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 6vw, 2.9rem); font-weight: 700;
+    letter-spacing: -0.025em; line-height: 1.08;
+    text-wrap: balance; margin: 0 0 14px;
+  }
+
+  .lede { font-size: 1.05rem; color: var(--muted); max-width: 64ch; margin: 0; }
+
+  section { margin-top: 56px; }
+
+  h2 {
+    font-size: 1.3rem; font-weight: 600;
+    letter-spacing: -0.015em; margin: 0 0 6px;
+  }
+
+  .sub { color: var(--muted); font-size: 0.95rem; max-width: 68ch; margin: 0 0 24px; }
+
+  /* ---------- métricas ---------- */
+  .metricas { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px;
+              background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .metrica { background: var(--surface); padding: 18px 20px; display: flex; flex-direction: column; gap: 2px; }
+  .metrica .n {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.75rem; font-weight: 700;
+    font-variant-numeric: tabular-nums; line-height: 1.15; letter-spacing: -0.02em;
+  }
+  .metrica .l { font-size: 0.78rem; color: var(--muted); line-height: 1.35; }
+
+  /* ---------- figuras ---------- */
+  figure { margin: 0 0 8px; }
+  .lienzo {
+    overflow-x: auto; background: var(--surface);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 10px;
+  }
+  .lienzo svg { display: block; min-width: 700px; width: 100%; height: auto; }
+  figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 12px; max-width: 70ch; }
+
+  /* ---------- traza ---------- */
+  .traza { display: grid; gap: 1px; background: var(--line);
+           border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .paso-traza { background: var(--surface); padding: 15px 18px; display: grid;
+                grid-template-columns: 128px 1fr; gap: 16px; align-items: baseline; }
+  .capa {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; font-weight: 700;
+    letter-spacing: 0.05em; padding: 4px 9px; border-radius: 5px; justify-self: start;
+  }
+  .c-web  { background: var(--teal-fill);   color: var(--teal); }
+  .c-serv { background: var(--indigo-fill); color: var(--indigo); }
+  .c-repo { background: var(--navy-fill);   color: var(--navy); }
+  .c-db   { background: var(--sunken);      color: var(--muted); }
+  .paso-traza p { margin: 0; font-size: 0.92rem; }
+  .paso-traza .det { color: var(--muted); font-size: 0.85rem; margin-top: 3px; }
+
+  /* ---------- reglas ---------- */
+  .reglas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .regla {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 18px 20px;
+  }
+  .regla h3 { font-size: 0.98rem; font-weight: 600; margin: 0 0 6px; }
+  .regla p { margin: 0; font-size: 0.89rem; color: var(--muted); }
+
+  /* ---------- fases ---------- */
+  .fases { display: grid; gap: 14px; }
+
+  .fase {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 20px 22px;
+    display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start;
+  }
+  .fase.activa { border-color: color-mix(in srgb, var(--ahora) 55%, transparent); }
+  .fase.lista  { opacity: 0.82; }
+
+  .fase-cab { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .fase-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    font-weight: 700; color: var(--muted);
+  }
+  .fase h3 { font-size: 1.08rem; font-weight: 600; margin: 0; }
+
+  .pill {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; padding: 4px 9px; border-radius: 20px; white-space: nowrap;
+  }
+  .p-hecho  { background: var(--hecho-fill);  color: var(--hecho); }
+  .p-ahora  { background: var(--ahora-fill);  color: var(--ahora); }
+  .p-alerta { background: var(--alerta-fill); color: var(--alerta); }
+  .p-espera { background: var(--sunken);      color: var(--muted); }
+
+  .entrega { font-size: 0.93rem; margin: 0 0 8px; }
+  .entrega b { font-weight: 600; }
+  .incluye { font-size: 0.85rem; color: var(--muted); margin: 0; }
+  .necesita {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem;
+    color: var(--muted); margin-top: 8px; display: block;
+  }
+  .nota-fase {
+    margin-top: 10px; font-size: 0.85rem; padding: 9px 12px;
+    border-radius: 7px; background: var(--alerta-fill); color: var(--alerta);
+  }
+
+  /* ---------- tabla stack ---------- */
+  .tabla-scroll { overflow-x: auto; border: 1px solid var(--line);
+                  border-radius: var(--radius); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; }
+  th {
+    text-align: left; font-size: 0.69rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); padding: 13px 16px;
+    border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 0.88rem; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.pieza { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; white-space: nowrap; }
+  td.razon { color: var(--muted); }
+
+  /* ---------- repo ---------- */
+  .repo-lista { display: grid; gap: 10px; }
+  .repo-item {
+    display: grid; grid-template-columns: 220px 1fr; gap: 16px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 14px 18px; align-items: baseline;
+  }
+  .repo-item .ruta { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--indigo); }
+  .repo-item p { margin: 0; font-size: 0.88rem; color: var(--muted); }
+
+  footer {
+    margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--line);
+    font-size: 0.82rem; color: var(--muted);
+  }
+
+  @media (max-width: 640px) {
+    .paso-traza { grid-template-columns: 1fr; gap: 8px; }
+    .fase { grid-template-columns: 1fr; }
+    .repo-item { grid-template-columns: 1fr; gap: 5px; }
+  }
+</style>
+</head>
+<body>
+<div style="background:#161D42;padding:10px 20px;font-family:'Archivo',system-ui,sans-serif;font-size:.85rem;display:flex;gap:18px;flex-wrap:wrap;align-items:center">
+  <span style="color:#8F94F2;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.7rem">LUFORA docs</span>
+  <a href="index.html" style="color:#E9EBF8;text-decoration:none">Manual</a>
+  <a href="plano.html" style="color:#E9EBF8;text-decoration:none">Plano y fases</a>
+  <a href="hexagonal.html" style="color:#E9EBF8;text-decoration:none">Hexagonal</a>
+</div>
+
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">LUFORA S.A.S. · Backend</p>
+    <h1>Plano del backend LUFORA</h1>
+    <p class="lede">
+      Cómo está construida la API, cómo viaja una petición por dentro, y en qué
+      orden se construye lo que falta. La arquitectura es en capas, organizada
+      por módulo de negocio — un monolito modular.
+    </p>
+  </header>
+
+  <section style="margin-top:0">
+    <div class="metricas">
+      <div class="metrica"><span class="n">1<span style="color:var(--muted);font-size:1rem">/6</span></span><span class="l">fases completadas</span></div>
+      <div class="metrica"><span class="n">19</span><span class="l">endpoints activos</span></div>
+      <div class="metrica"><span class="n">35</span><span class="l">clases Java</span></div>
+      <div class="metrica"><span class="n">4</span><span class="l">tablas en MySQL</span></div>
+      <div class="metrica"><span class="n">47</span><span class="l">archivos en el repo</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tres decisiones distintas, no una</h2>
+    <p class="sub">
+      Monolito, capas, hexagonal, MVC — se nombran juntos como si fueran opciones
+      del mismo menú, y no lo son. Cada uno responde una pregunta diferente, y
+      todo proyecto contesta las tres.
+    </p>
+
+    <figure>
+      <div class="lienzo">
+        <svg viewBox="0 0 880 300" role="img" aria-label="Tres ejes de decisión independientes: despliegue (monolito o microservicios), organización interna (capas, hexagonal o clean) y capa web (Spring MVC, WebFlux o GraphQL). LUFORA elige monolito, capas y Spring MVC.">
+
+          <!-- fila 1: despliegue -->
+          <text x="20" y="56" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.1" fill="var(--ink)">DESPLIEGUE</text>
+          <text x="20" y="74" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">¿en cuántos procesos corre?</text>
+
+          <rect x="270" y="40" width="118" height="40" rx="7" fill="var(--indigo-fill)" stroke="var(--indigo)" stroke-width="1.8"/>
+          <text x="329" y="65" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">Monolito</text>
+
+          <rect x="404" y="40" width="150" height="40" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>
+          <text x="479" y="65" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" fill="var(--muted)">Microservicios</text>
+
+          <!-- fila 2: organizacion -->
+          <text x="20" y="146" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.1" fill="var(--ink)">ORGANIZACIÓN</text>
+          <text x="20" y="164" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">¿cómo se ordena por dentro?</text>
+
+          <rect x="270" y="130" width="118" height="40" rx="7" fill="var(--indigo-fill)" stroke="var(--indigo)" stroke-width="1.8"/>
+          <text x="329" y="155" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">En capas</text>
+
+          <rect x="404" y="130" width="128" height="40" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>
+          <text x="468" y="155" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" fill="var(--muted)">Hexagonal</text>
+
+          <rect x="548" y="130" width="112" height="40" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>
+          <text x="604" y="155" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" fill="var(--muted)">Clean</text>
+
+          <!-- fila 3: capa web -->
+          <text x="20" y="236" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.1" fill="var(--ink)">CAPA WEB</text>
+          <text x="20" y="254" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">¿cómo entra una petición?</text>
+
+          <rect x="270" y="220" width="130" height="40" rx="7" fill="var(--indigo-fill)" stroke="var(--indigo)" stroke-width="1.8"/>
+          <text x="335" y="245" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">Spring MVC</text>
+
+          <rect x="416" y="220" width="118" height="40" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>
+          <text x="475" y="245" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" fill="var(--muted)">WebFlux</text>
+
+          <rect x="550" y="220" width="118" height="40" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>
+          <text x="609" y="245" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" fill="var(--muted)">GraphQL</text>
+
+          <!-- llave que agrupa lo elegido -->
+          <path d="M 700 52 L 716 52 L 716 240 L 700 240" fill="none" stroke="var(--indigo)" stroke-width="1.5"/>
+          <path d="M 716 146 L 734 146" fill="none" stroke="var(--indigo)" stroke-width="1.5"/>
+          <text x="742" y="140" font-family="Archivo, sans-serif" font-size="12.5" font-weight="600" fill="var(--indigo)">Esto es</text>
+          <text x="742" y="157" font-family="Archivo, sans-serif" font-size="12.5" font-weight="600" fill="var(--indigo)">LUFORA</text>
+        </svg>
+      </div>
+      <figcaption>
+        En morado, lo que usa LUFORA: un <b>monolito</b>, organizado <b>en capas
+        por módulo</b>, con <b>Spring MVC</b> en la entrada. No compiten entre sí —
+        se combinan. Cambiar de capas a hexagonal no te obliga a dejar MVC ni a
+        partir el monolito.
+      </figcaption>
+    </figure>
+
+    <div class="reglas" style="margin-top:24px">
+      <div class="regla">
+        <h3>Ya estás usando MVC</h3>
+        <p>Spring MVC es la capa web: lo que convierte una URL en una llamada a tu <code>ProductoController</code> y tu objeto de respuesta en JSON. Vive <em>dentro</em> de cualquier arquitectura que elijas, hexagonal incluida. No es una alternativa a nada.</p>
+      </div>
+      <div class="regla">
+        <h3>Monolito es sobre despliegue</h3>
+        <p>Significa un solo programa que arranca y se despliega completo. Lo contrario son microservicios: varios programas hablando por red. Nada que ver con cómo ordenas las carpetas.</p>
+      </div>
+      <div class="regla">
+        <h3>Modular es el apellido</h3>
+        <p>Un monolito <em>modular</em> tiene fronteras internas claras — catálogo, inventario, pedidos — cada uno con sus propias capas. Es lo que evita que un monolito se vuelva la bola de barro que todo el mundo teme.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>El recorrido de una petición</h2>
+    <p class="sub">
+      Cada capa solo conoce a la siguiente. Lo importante es qué viaja entre
+      ellas: la entidad de base de datos nunca llega al cliente.
+    </p>
+
+    <figure>
+      <div class="lienzo">
+        <svg viewBox="0 0 880 280" role="img" aria-label="Flujo de una petición: el cliente envía JSON al controller, que pasa un DTO al service, que usa la entidad contra el repository, que ejecuta SQL en MySQL. En el regreso, el mapper convierte la entidad a DTO y descarta el campo costo.">
+          <defs>
+            <marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <polygon points="0,0 10,5 0,10" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- cajas -->
+          <rect x="8" y="86" width="104" height="66" rx="9" fill="var(--sunken)" stroke="var(--line)" stroke-width="1.5"/>
+          <text x="60" y="124" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">Cliente</text>
+
+          <rect x="168" y="86" width="140" height="66" rx="9" fill="var(--teal-fill)" stroke="var(--teal)" stroke-width="1.8"/>
+          <text x="238" y="116" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">Controller</text>
+          <text x="238" y="134" text-anchor="middle" font-family="Archivo, sans-serif" font-size="10.5" fill="var(--muted)">web/</text>
+
+          <rect x="364" y="86" width="140" height="66" rx="9" fill="var(--indigo-fill)" stroke="var(--indigo)" stroke-width="1.8"/>
+          <text x="434" y="116" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">Service</text>
+          <text x="434" y="134" text-anchor="middle" font-family="Archivo, sans-serif" font-size="10.5" fill="var(--muted)">reglas + transacción</text>
+
+          <rect x="560" y="86" width="140" height="66" rx="9" fill="var(--navy-fill)" stroke="var(--navy)" stroke-width="1.8"/>
+          <text x="630" y="116" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">Repository</text>
+          <text x="630" y="134" text-anchor="middle" font-family="Archivo, sans-serif" font-size="10.5" fill="var(--muted)">Spring Data</text>
+
+          <rect x="756" y="86" width="112" height="66" rx="9" fill="var(--sunken)" stroke="var(--line)" stroke-width="1.5"/>
+          <text x="812" y="124" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">MySQL</text>
+
+          <!-- ida (arriba) -->
+          <g color="var(--muted)">
+            <path d="M 116 106 L 162 106" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#fl)"/>
+            <path d="M 312 106 L 358 106" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#fl)"/>
+            <path d="M 508 106 L 554 106" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#fl)"/>
+            <path d="M 704 106 L 750 106" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#fl)"/>
+          </g>
+          <text x="139" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">JSON</text>
+          <text x="335" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">Request DTO</text>
+          <text x="531" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">entidad</text>
+          <text x="727" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">SQL</text>
+
+          <!-- vuelta (abajo) -->
+          <g color="var(--muted)">
+            <path d="M 750 132 L 704 132" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#fl)" stroke-dasharray="4 3"/>
+            <path d="M 554 132 L 508 132" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#fl)" stroke-dasharray="4 3"/>
+            <path d="M 358 132 L 312 132" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#fl)" stroke-dasharray="4 3"/>
+            <path d="M 162 132 L 116 132" stroke="currentColor" stroke-width="1.6" fill="none" marker-end="url(#fl)" stroke-dasharray="4 3"/>
+          </g>
+          <text x="727" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">filas</text>
+          <text x="531" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">entidad</text>
+          <text x="335" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--indigo)" font-weight="700">Response DTO</text>
+          <text x="139" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">JSON</text>
+
+          <!-- anotación del mapper -->
+          <path d="M 335 190 L 335 214" stroke="var(--indigo)" stroke-width="1.4" fill="none"/>
+          <rect x="196" y="216" width="278" height="48" rx="8" fill="var(--indigo-fill)" stroke="var(--indigo)" stroke-width="1.4"/>
+          <text x="335" y="236" text-anchor="middle" font-family="Archivo, sans-serif" font-size="11.5" font-weight="600" fill="var(--ink)">Aquí convierte el CatalogoMapper</text>
+          <text x="335" y="252" text-anchor="middle" font-family="Archivo, sans-serif" font-size="10.5" fill="var(--muted)">y deja fuera el campo costo</text>
+
+          <text x="16" y="24" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" letter-spacing="1.2" fill="var(--muted)">IDA</text>
+          <text x="16" y="204" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" letter-spacing="1.2" fill="var(--muted)">VUELTA</text>
+        </svg>
+      </div>
+      <figcaption>
+        La línea continua es la ida; la punteada, el regreso. El punto donde el
+        mapper convierte la entidad en DTO es lo que impide que tu precio de
+        costo salga publicado en la API.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Por qué las carpetas están así</h2>
+    <p class="sub">
+      La decisión no fue "usar capas" — eso lo hace todo el mundo. Fue agrupar
+      por funcionalidad en vez de por tipo de clase. Esto es lo que cambia.
+    </p>
+
+    <figure>
+      <div class="lienzo">
+        <svg viewBox="0 0 880 330" role="img" aria-label="Comparación: agrupando por capa, tocar la funcionalidad de pedidos obliga a editar cuatro carpetas distintas; agrupando por módulo, la misma funcionalidad vive en una sola carpeta.">
+          <!-- IZQUIERDA: por capa -->
+          <text x="20" y="26" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.1" fill="var(--muted)">AGRUPADO POR CAPA</text>
+          <text x="20" y="46" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">lo tradicional</text>
+
+          <rect x="20" y="60" width="180" height="46" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>
+          <text x="34" y="82" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--muted)">controllers/</text>
+          <rect x="120" y="86" width="70" height="15" rx="4" fill="var(--ahora-fill)"/>
+          <text x="155" y="97" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--ahora)">pedidos</text>
+
+          <rect x="20" y="118" width="180" height="46" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>
+          <text x="34" y="140" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--muted)">services/</text>
+          <rect x="120" y="144" width="70" height="15" rx="4" fill="var(--ahora-fill)"/>
+          <text x="155" y="155" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--ahora)">pedidos</text>
+
+          <rect x="20" y="176" width="180" height="46" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>
+          <text x="34" y="198" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--muted)">repositories/</text>
+          <rect x="120" y="202" width="70" height="15" rx="4" fill="var(--ahora-fill)"/>
+          <text x="155" y="213" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--ahora)">pedidos</text>
+
+          <rect x="20" y="234" width="180" height="46" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>
+          <text x="34" y="256" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--muted)">entities/</text>
+          <rect x="120" y="260" width="70" height="15" rx="4" fill="var(--ahora-fill)"/>
+          <text x="155" y="271" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--ahora)">pedidos</text>
+
+          <text x="110" y="304" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12" font-weight="600" fill="var(--ahora)">un cambio toca 4 carpetas</text>
+
+          <!-- separador -->
+          <line x1="440" y1="60" x2="440" y2="290" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="5 5"/>
+
+          <!-- DERECHA: por modulo -->
+          <text x="500" y="26" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.1" fill="var(--muted)">AGRUPADO POR MÓDULO</text>
+          <text x="500" y="46" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--indigo)">lo que usa LUFORA</text>
+
+          <rect x="500" y="60" width="240" height="220" rx="9" fill="var(--indigo-fill)" stroke="var(--indigo)" stroke-width="1.8"/>
+          <text x="516" y="86" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="var(--indigo)">pedidos/</text>
+
+          <rect x="518" y="100" width="204" height="34" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/>
+          <text x="532" y="121" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--ink)">web/</text>
+
+          <rect x="518" y="142" width="204" height="34" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/>
+          <text x="532" y="163" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--ink)">service/</text>
+
+          <rect x="518" y="184" width="204" height="34" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/>
+          <text x="532" y="205" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--ink)">repository/</text>
+
+          <rect x="518" y="226" width="204" height="34" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/>
+          <text x="532" y="247" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--ink)">domain/</text>
+
+          <text x="620" y="304" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12" font-weight="600" fill="var(--indigo)">un cambio toca 1 carpeta</text>
+
+          <!-- flecha comparativa -->
+          <text x="220" y="170" font-family="Archivo, sans-serif" font-size="24" fill="var(--muted)">→</text>
+          <text x="252" y="150" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">las capas</text>
+          <text x="252" y="168" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">siguen ahí,</text>
+          <text x="252" y="186" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">solo cambia</text>
+          <text x="252" y="204" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">dónde viven</text>
+        </svg>
+      </div>
+      <figcaption>
+        Las capas no desaparecen: se meten dentro de cada módulo. La diferencia
+        aparece al sexto mes, cuando tengas cuatro módulos y cada carpeta
+        tradicional acumule cuarenta archivos mezclados.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Capas y hexagonal: la flecha que se invierte</h2>
+    <p class="sub">
+      Toda la diferencia entre las dos cabe en una sola flecha. No es una
+      metáfora: es literalmente quién depende de quién entre el service y la
+      base de datos.
+    </p>
+
+    <figure>
+      <div class="lienzo">
+        <svg viewBox="0 0 880 440" role="img" aria-label="En capas, el service depende directamente del repositorio de Spring Data. En hexagonal, el service depende de una interfaz que él mismo define, y el adaptador de persistencia la implementa: la flecha entre persistencia y negocio apunta al revés.">
+          <defs>
+            <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <polygon points="0,0 10,5 0,10" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- ================= IZQUIERDA: EN CAPAS ================= -->
+          <text x="60" y="28" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.1" fill="var(--muted)">EN CAPAS</text>
+          <text x="60" y="46" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--indigo)">lo que usa LUFORA hoy</text>
+
+          <rect x="60" y="62" width="290" height="54" rx="8" fill="var(--indigo-fill)" stroke="var(--indigo)" stroke-width="1.7"/>
+          <text x="205" y="94" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">ProductoService</text>
+
+          <g color="var(--muted)">
+            <path d="M 205 120 L 205 150" stroke="currentColor" stroke-width="1.7" fill="none" marker-end="url(#fa)"/>
+          </g>
+          <text x="216" y="140" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">depende de</text>
+
+          <rect x="60" y="154" width="290" height="54" rx="8" fill="var(--navy-fill)" stroke="var(--navy)" stroke-width="1.7"/>
+          <text x="205" y="180" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">ProductoRepository</text>
+          <text x="205" y="197" text-anchor="middle" font-family="Archivo, sans-serif" font-size="10.5" fill="var(--muted)">interfaz de Spring Data</text>
+
+          <g color="var(--muted)">
+            <path d="M 205 212 L 205 242" stroke="currentColor" stroke-width="1.7" fill="none" marker-end="url(#fa)"/>
+          </g>
+          <text x="216" y="232" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">consulta</text>
+
+          <rect x="60" y="246" width="290" height="50" rx="8" fill="var(--sunken)" stroke="var(--line)" stroke-width="1.5"/>
+          <text x="205" y="277" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">MySQL</text>
+
+          <text x="60" y="330" font-family="Archivo, sans-serif" font-size="12" font-weight="600" fill="var(--ink)">Todas las flechas bajan.</text>
+          <text x="60" y="350" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">Tu lógica de negocio conoce a Spring Data.</text>
+          <text x="60" y="368" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">3 clases. Directo y fácil de seguir.</text>
+
+          <!-- separador -->
+          <line x1="440" y1="40" x2="440" y2="400" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="5 5"/>
+
+          <!-- ================= DERECHA: HEXAGONAL ================= -->
+          <text x="520" y="28" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.1" fill="var(--muted)">HEXAGONAL</text>
+          <text x="520" y="46" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">la alternativa</text>
+
+          <rect x="520" y="62" width="290" height="54" rx="8" fill="var(--indigo-fill)" stroke="var(--indigo)" stroke-width="1.7"/>
+          <text x="665" y="94" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">ProductoService</text>
+
+          <g color="var(--muted)">
+            <path d="M 665 120 L 665 150" stroke="currentColor" stroke-width="1.7" fill="none" marker-end="url(#fa)"/>
+          </g>
+          <text x="676" y="140" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--muted)">depende de</text>
+
+          <rect x="520" y="154" width="290" height="54" rx="8" fill="var(--surface)" stroke="var(--indigo)" stroke-width="1.7" stroke-dasharray="6 4"/>
+          <text x="665" y="180" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">ProductoRepositoryPort</text>
+          <text x="665" y="197" text-anchor="middle" font-family="Archivo, sans-serif" font-size="10.5" fill="var(--muted)">interfaz que define el propio negocio</text>
+
+          <!-- LA FLECHA QUE SUBE: el punto de todo el diagrama -->
+          <g color="var(--indigo)">
+            <path d="M 665 242 L 665 212" stroke="currentColor" stroke-width="2.4" fill="none" marker-end="url(#fa)"/>
+          </g>
+          <text x="678" y="233" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="var(--indigo)">implementa</text>
+
+          <rect x="520" y="246" width="290" height="54" rx="8" fill="var(--navy-fill)" stroke="var(--navy)" stroke-width="1.7"/>
+          <text x="665" y="272" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">ProductoPersistenceAdapter</text>
+          <text x="665" y="289" text-anchor="middle" font-family="Archivo, sans-serif" font-size="10.5" fill="var(--muted)">aquí vive Spring Data</text>
+
+          <g color="var(--muted)">
+            <path d="M 665 304 L 665 332" stroke="currentColor" stroke-width="1.7" fill="none" marker-end="url(#fa)"/>
+          </g>
+
+          <rect x="520" y="336" width="290" height="50" rx="8" fill="var(--sunken)" stroke="var(--line)" stroke-width="1.5"/>
+          <text x="665" y="367" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">MySQL</text>
+
+          <text x="520" y="412" font-family="Archivo, sans-serif" font-size="12" font-weight="600" fill="var(--indigo)">Una flecha sube.</text>
+          <text x="520" y="430" font-family="Archivo, sans-serif" font-size="11.5" fill="var(--muted)">El negocio ya no conoce a Spring Data. 5 clases.</text>
+        </svg>
+      </div>
+      <figcaption>
+        Eso es todo lo que cambia, y de ahí sale el resto: como el service ya no
+        depende del framework, puedes probarlo sin base de datos y cambiar MySQL
+        sin tocarlo. El precio son las clases extra y el mapeo entre ellas.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Por qué este modelo para LUFORA</h2>
+    <p class="sub">
+      La arquitectura correcta no es la más avanzada: es la que protege contra
+      los riesgos que tú sí tienes. Estos son los tuyos hoy.
+    </p>
+
+    <div class="reglas">
+      <div class="regla">
+        <h3>No alcanzar a lanzar</h3>
+        <p>Son dos personas con trabajo aparte. Cada hora en refactor es una hora que no está en el catálogo ni en conseguir el primer cliente. Las capas te dejan avanzar rápido.</p>
+      </div>
+      <div class="regla">
+        <h3>Que el negocio cambie</h3>
+        <p>Todavía no sabes si venderás online, por WhatsApp o por cotización a empresas. Un código simple se dobla; uno con cinco abstracciones se rompe, porque abstrajiste lo equivocado.</p>
+      </div>
+      <div class="regla">
+        <h3>Cambiar de proveedor externo</h3>
+        <p>Este sí es real, y llega en la Fase 5. Por eso la regla: interfaz solo donde hay un tercero. La pasarela de pago se abstrae; guardar un producto no.</p>
+      </div>
+    </div>
+
+    <div class="repo-lista" style="margin-top:14px">
+      <div class="repo-item">
+        <span class="ruta">lo que NO es un riesgo</span>
+        <p>Cambiar MySQL por otra base de datos, o Spring por otro framework. Esos son justo los accidentes contra los que asegura la hexagonal — y no te van a pasar. Pagar por ese seguro hoy es el error más común en un proyecto joven.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Qué pasa cuando alguien busca un producto</h2>
+    <p class="sub">
+      Traza real de <code>GET /api/v1/productos?texto=lenovo&amp;precioMax=3000000</code>,
+      capa por capa.
+    </p>
+
+    <div class="traza">
+      <div class="paso-traza">
+        <span class="capa c-web">CONTROLLER</span>
+        <div>
+          <p>Recibe los parámetros sueltos y los empaqueta en un <code>ProductoFiltro</code>.</p>
+          <p class="det">No decide nada. Solo traduce de HTTP a objetos de Java y delega.</p>
+        </div>
+      </div>
+      <div class="paso-traza">
+        <span class="capa c-serv">SERVICE</span>
+        <div>
+          <p>Arma la consulta combinando solo los filtros que llegaron con valor.</p>
+          <p class="det">Los que vienen nulos se descartan: por eso una sola función sirve para cualquier combinación de filtros, sin escribir una consulta por cada caso.</p>
+        </div>
+      </div>
+      <div class="paso-traza">
+        <span class="capa c-repo">REPOSITORY</span>
+        <div>
+          <p>Spring Data traduce esa combinación a una única sentencia SQL con su paginación.</p>
+          <p class="det">Nadie escribió ese SQL a mano.</p>
+        </div>
+      </div>
+      <div class="paso-traza">
+        <span class="capa c-db">MYSQL</span>
+        <div>
+          <p>Devuelve las filas de la página pedida y el total de resultados.</p>
+        </div>
+      </div>
+      <div class="paso-traza">
+        <span class="capa c-serv">SERVICE</span>
+        <div>
+          <p>El mapper convierte cada entidad en <code>ProductoResumenResponse</code>.</p>
+          <p class="det">Aquí se cae el campo <code>costo</code> y se calcula <code>disponible</code> a partir del stock.</p>
+        </div>
+      </div>
+      <div class="paso-traza">
+        <span class="capa c-web">CONTROLLER</span>
+        <div>
+          <p>Responde el JSON envuelto en <code>PageResponse</code>.</p>
+          <p class="det">Formato propio y estable: si Spring cambia su clase Page, tu frontend no se entera.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Las cuatro reglas que sostienen esto</h2>
+    <p class="sub">
+      Si algún día dudas dónde poner una clase nueva, la respuesta sale de aquí.
+    </p>
+
+    <div class="reglas">
+      <div class="regla">
+        <h3>La entidad nunca sale por la API</h3>
+        <p>Siempre se convierte a DTO. Exponerla acopla tu frontend al esquema de la base de datos y filtra campos privados como el costo.</p>
+      </div>
+      <div class="regla">
+        <h3>La lógica vive en el service</h3>
+        <p>El controller solo recibe y delega. Así la misma regla sirve para un endpoint, una tarea programada o un test.</p>
+      </div>
+      <div class="regla">
+        <h3>El esquema lo manda Flyway</h3>
+        <p>Hibernate está en modo <code>validate</code>: verifica, nunca modifica. Cada cambio es un archivo <code>V…sql</code> versionado en git.</p>
+      </div>
+      <div class="regla">
+        <h3>Interfaz solo si hay un tercero</h3>
+        <p>Abstrae cuando haya un servicio externo detrás, dos implementaciones reales, o necesites testear sin la dependencia. Nunca "por si acaso".</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Las fases del proyecto</h2>
+    <p class="sub">
+      El orden no es opcional: cada fase se apoya en la anterior. Saltar a
+      pedidos sin usuarios significa no saber quién compró.
+    </p>
+
+    <div class="fases">
+
+      <div class="fase lista">
+        <div>
+          <div class="fase-cab">
+            <span class="fase-num">FASE 1</span>
+            <h3>Catálogo</h3>
+            <span class="pill p-hecho">Hecho</span>
+          </div>
+          <p class="entrega"><b>Te permite:</b> cargar tu inventario de productos y exponerlo por API.</p>
+          <p class="incluye">Marcas, categorías, productos e imágenes. Búsqueda con filtros combinables, paginación, slugs para URLs, stock básico, borrado lógico y manejo unificado de errores.</p>
+        </div>
+      </div>
+
+      <div class="fase activa">
+        <div>
+          <div class="fase-cab">
+            <span class="fase-num">FASE 2</span>
+            <h3>Inventario con historial</h3>
+            <span class="pill p-ahora">Siguiente</span>
+          </div>
+          <p class="entrega"><b>Te permite:</b> saber quién movió el stock, cuándo y por qué.</p>
+          <p class="incluye">Hoy el ajuste de stock funciona pero no deja rastro. Con un registro de movimientos (entrada, salida, ajuste) con motivo y responsable, un descuadre se puede auditar. Sin eso, es imposible.</p>
+          <span class="necesita">no depende de nada nuevo · replica el patrón del catálogo</span>
+        </div>
+      </div>
+
+      <div class="fase">
+        <div>
+          <div class="fase-cab">
+            <span class="fase-num">FASE 3</span>
+            <h3>Usuarios y seguridad</h3>
+            <span class="pill p-alerta">Antes de publicar</span>
+          </div>
+          <p class="entrega"><b>Te permite:</b> que nadie borre tu catálogo desde internet.</p>
+          <p class="incluye">Autenticación con JWT, roles (administrador, vendedor, cliente) y contraseñas cifradas con BCrypt. El catálogo queda público para leer; crear, editar y borrar quedan restringidos.</p>
+          <div class="nota-fase">Hoy la API no tiene ninguna protección. No la expongas a internet sin completar esta fase.</div>
+        </div>
+      </div>
+
+      <div class="fase">
+        <div>
+          <div class="fase-cab">
+            <span class="fase-num">FASE 4</span>
+            <h3>Carrito y pedidos</h3>
+            <span class="pill p-espera">En espera</span>
+          </div>
+          <p class="entrega"><b>Te permite:</b> que el cliente compre.</p>
+          <p class="incluye">Carrito, pedido y estados (pendiente, pagado, preparando, enviado, entregado). Dos detalles que definen si funciona: descontar el stock dentro de la misma transacción que confirma el pedido, y guardar el precio de venta en cada línea — si mañana subes precios, el pedido viejo debe conservar el suyo.</p>
+          <span class="necesita">necesita: Fase 3 · hay que saber quién compra</span>
+        </div>
+      </div>
+
+      <div class="fase">
+        <div>
+          <div class="fase-cab">
+            <span class="fase-num">FASE 5</span>
+            <h3>Pagos y envíos</h3>
+            <span class="pill p-espera">En espera</span>
+          </div>
+          <p class="entrega"><b>Te permite:</b> recibir el dinero.</p>
+          <p class="incluye">Integración con Wompi o Mercado Pago, confirmación por webhook —nunca confiando solo en lo que responde el navegador— y cálculo de envío por ciudad.</p>
+          <span class="necesita">necesita: Fase 4 · aquí sí conviene una interfaz para la pasarela</span>
+        </div>
+      </div>
+
+      <div class="fase">
+        <div>
+          <div class="fase-cab">
+            <span class="fase-num">FASE 6</span>
+            <h3>Operación</h3>
+            <span class="pill p-espera">En espera</span>
+          </div>
+          <p class="entrega"><b>Te permite:</b> facturar legalmente y medir el negocio.</p>
+          <p class="incluye">Facturación electrónica ante la DIAN, reportes de ventas y márgenes, y notificaciones por correo.</p>
+          <span class="necesita">necesita: Fase 5</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Con qué está construido, y por qué</h2>
+    <div class="tabla-scroll">
+      <table>
+        <thead>
+          <tr><th>Pieza</th><th>Rol</th><th>Por qué esta</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="pieza">Java 21</td><td>Lenguaje</td>
+            <td class="razon">Versión con soporte extendido. Los <code>record</code> hacen los DTOs mucho más limpios.</td>
+          </tr>
+          <tr>
+            <td class="pieza">Spring Boot 3</td><td>Framework</td>
+            <td class="razon">El estándar del mercado en Java. Contratar a alguien que lo conozca es fácil.</td>
+          </tr>
+          <tr>
+            <td class="pieza">MySQL 8</td><td>Base de datos</td>
+            <td class="razon">Elegida por ti. Soportada por cualquier hosting colombiano barato.</td>
+          </tr>
+          <tr>
+            <td class="pieza">Flyway</td><td>Migraciones</td>
+            <td class="razon">Vuelve el esquema parte del código. Elimina el "en mi máquina sí funciona".</td>
+          </tr>
+          <tr>
+            <td class="pieza">Specifications</td><td>Filtros</td>
+            <td class="razon">Una sola función cubre todas las combinaciones de búsqueda.</td>
+          </tr>
+          <tr>
+            <td class="pieza">springdoc</td><td>Documentación</td>
+            <td class="razon">Genera Swagger solo. Tu frontend consulta la API sin preguntarte.</td>
+          </tr>
+          <tr>
+            <td class="pieza">Lombok</td><td>Utilidad</td>
+            <td class="razon">Elimina getters y setters repetidos. Requiere plugin en el IDE.</td>
+          </tr>
+          <tr>
+            <td class="pieza">Docker</td><td>Entorno</td>
+            <td class="razon">MySQL con un comando, sin instalar nada. Y el mismo contenedor sirve para producción.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Lo que ya está listo para producción</h2>
+    <p class="sub">
+      No solo el código de la aplicación: el repositorio trae lo necesario para
+      desplegarlo y para que nadie suba una credencial por accidente.
+    </p>
+
+    <div class="repo-lista">
+      <div class="repo-item">
+        <span class="ruta">Dockerfile</span>
+        <p>Construcción en dos etapas: compila con Maven y ejecuta sobre un JRE mínimo. La imagen final no lleva ni el compilador ni el código fuente, y no corre como root.</p>
+      </div>
+      <div class="repo-item">
+        <span class="ruta">.github/workflows/ci.yml</span>
+        <p>En cada push compila y corre los tests contra un MySQL real, no una base falsa en memoria. Si algo se rompe, te enteras antes de desplegar.</p>
+      </div>
+      <div class="repo-item">
+        <span class="ruta">.gitignore + .env.example</span>
+        <p>Las credenciales se leen de variables de entorno y los archivos con secretos están bloqueados. La plantilla documenta qué hace falta configurar.</p>
+      </div>
+      <div class="repo-item">
+        <span class="ruta">peticiones.http</span>
+        <p>Todas las llamadas listas para ejecutar desde IntelliJ o VS Code, sin escribir un solo curl.</p>
+      </div>
+      <div class="repo-item">
+        <span class="ruta">db/migration/</span>
+        <p>El esquema completo y datos de ejemplo. Al arrancar por primera vez, la base se crea sola.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    LUFORA S.A.S. · Colombia · Backend en Spring Boot 3 · Fase 1 de 6 completada.
+    La arquitectura hexagonal tiene su propio mapa aparte, para cuando llegues a pedidos y pagos.
+  </footer>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Documentacion tecnica del backend de LUFORA S.A.S.">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>Manual del backend LUFORA</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+  :root {
+    --ground:  #F5F6FB;
+    --surface: #FFFFFF;
+    --sunken:  #EDEFF8;
+    --ink:     #141B36;
+    --muted:   #5C6588;
+    --line:    #DFE3F1;
+
+    --navy:   #1B2A6B;
+    --indigo: #474EC9;
+    --teal:   #1F87AC;
+    --oro:    #8A6410;
+
+    --navy-fill:   #E6EAF6;
+    --indigo-fill: #ECEDFB;
+    --teal-fill:   #E2F2F8;
+    --oro-fill:    #FAF0DA;
+
+    --radius: 10px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:  #0D1230;  --surface: #161D42;  --sunken:  #111739;
+      --ink:     #E9EBF8;  --muted:   #99A1C9;  --line:    #2A3163;
+      --navy:    #8B95EE;  --indigo:  #8F94F2;  --teal:    #4FC5E9;  --oro: #DDB35F;
+      --navy-fill: #1D2551; --indigo-fill: #222859; --teal-fill: #14344A; --oro-fill: #2E2716;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:  #0D1230;  --surface: #161D42;  --sunken:  #111739;
+    --ink:     #E9EBF8;  --muted:   #99A1C9;  --line:    #2A3163;
+    --navy:    #8B95EE;  --indigo:  #8F94F2;  --teal:    #4FC5E9;  --oro: #DDB35F;
+    --navy-fill: #1D2551; --indigo-fill: #222859; --teal-fill: #14344A; --oro-fill: #2E2716;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 16px; line-height: 1.65; margin: 0;
+  }
+
+  code, .mono { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
+  code { font-size: 0.88em; }
+
+  .shell {
+    max-width: 1180px; margin: 0 auto;
+    padding-inline: 20px; padding-block: 44px 80px;
+    display: grid; grid-template-columns: 218px minmax(0, 1fr); gap: 44px;
+    align-items: start;
+  }
+
+  /* ---------- navegación ---------- */
+  nav.toc { position: sticky; top: 24px; }
+  nav.toc p {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 12px;
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; counter-reset: nav; }
+  nav.toc a {
+    display: flex; gap: 9px; text-decoration: none; color: var(--muted);
+    font-size: 0.86rem; padding: 6px 9px; border-radius: 6px; line-height: 1.35;
+  }
+  nav.toc a:hover { background: var(--sunken); color: var(--ink); }
+  nav.toc a:focus-visible { outline: 2px solid var(--indigo); outline-offset: 1px; }
+  nav.toc li { counter-increment: nav; }
+  nav.toc a::before {
+    content: counter(nav); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--indigo); font-weight: 700; flex-shrink: 0;
+  }
+
+  /* ---------- cabecera ---------- */
+  header { margin-bottom: 8px; }
+  .eyebrow {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--indigo); margin: 0 0 12px;
+  }
+  h1 {
+    font-size: clamp(2rem, 5.5vw, 2.85rem); font-weight: 700;
+    letter-spacing: -0.025em; line-height: 1.08; text-wrap: balance; margin: 0 0 14px;
+  }
+  .lede { font-size: 1.05rem; color: var(--muted); max-width: 62ch; margin: 0; }
+
+  section { margin-top: 60px; scroll-margin-top: 24px; }
+  section > h2 {
+    font-size: 1.42rem; font-weight: 700; letter-spacing: -0.02em;
+    margin: 0 0 8px; text-wrap: balance;
+  }
+  .sub { color: var(--muted); font-size: 0.96rem; max-width: 68ch; margin: 0 0 26px; }
+
+  h3.grupo {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--muted);
+    margin: 34px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+
+  p { max-width: 70ch; }
+
+  /* ---------- pasos del método ---------- */
+  ol.metodo { list-style: none; counter-reset: m; padding: 0; margin: 0; display: grid; gap: 12px; }
+  ol.metodo li {
+    counter-increment: m; background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 18px 20px;
+    display: grid; grid-template-columns: 32px 1fr; gap: 15px; align-items: start;
+  }
+  ol.metodo li::before {
+    content: counter(m); font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+    font-weight: 700; color: var(--indigo); background: var(--indigo-fill);
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.metodo strong { display: block; font-weight: 600; margin-bottom: 3px; font-size: 1rem; }
+  ol.metodo p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+  ol.metodo .ej {
+    margin-top: 8px; font-size: 0.86rem; color: var(--ink);
+    background: var(--sunken); border-radius: 7px; padding: 9px 12px;
+  }
+
+  /* ---------- fichas de archivo ---------- */
+  .fichas { display: grid; gap: 12px; }
+  .ficha {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 17px 20px;
+  }
+  .ficha-cab { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 9px; }
+  .ficha-nom { font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; font-weight: 700; }
+  .capa {
+    font-size: 0.63rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 4px;
+  }
+  .k-cfg   { background: var(--sunken);      color: var(--muted); }
+  .k-dom   { background: var(--navy-fill);   color: var(--navy); }
+  .k-datos { background: var(--navy-fill);   color: var(--navy); }
+  .k-app   { background: var(--indigo-fill); color: var(--indigo); }
+  .k-web   { background: var(--teal-fill);   color: var(--teal); }
+  .k-comun { background: var(--oro-fill);    color: var(--oro); }
+
+  .ficha p { margin: 0 0 7px; font-size: 0.93rem; }
+  .ficha p:last-child { margin-bottom: 0; }
+  .et {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase;
+    display: block; margin-top: 10px; margin-bottom: 2px;
+  }
+  .sin {
+    background: var(--oro-fill); border-radius: 7px; padding: 9px 12px;
+    font-size: 0.88rem; margin-top: 10px;
+  }
+  .sin b { color: var(--oro); }
+
+  pre.snip {
+    background: var(--sunken); border-radius: 7px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    overflow-x: auto; margin: 9px 0 0; line-height: 1.6;
+  }
+
+  /* ---------- orden de construcción ---------- */
+  .cadena { display: grid; gap: 8px; }
+  .eslabon {
+    display: grid; grid-template-columns: 26px 200px 1fr; gap: 14px; align-items: baseline;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 16px;
+  }
+  .eslabon .i { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: var(--indigo); font-weight: 700; }
+  .eslabon .f { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+  .eslabon .q { font-size: 0.89rem; color: var(--muted); }
+
+  /* ---------- tabla ---------- */
+  .tabla-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 600px; }
+  th {
+    text-align: left; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); padding: 13px 15px;
+    border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  td { padding: 11px 15px; border-bottom: 1px solid var(--line); font-size: 0.88rem; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.anot { font-family: 'JetBrains Mono', monospace; font-size: 0.79rem; white-space: nowrap; color: var(--indigo); }
+  td.don { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: var(--muted); white-space: nowrap; }
+
+  /* ---------- receta ---------- */
+  ol.receta { list-style: none; counter-reset: r; padding: 0; margin: 0; display: grid; gap: 10px; }
+  ol.receta li {
+    counter-increment: r; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 15px 18px;
+    display: grid; grid-template-columns: 28px 1fr; gap: 14px; align-items: start;
+  }
+  ol.receta li::before {
+    content: counter(r); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    font-weight: 700; color: var(--teal); background: var(--teal-fill);
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.receta strong { display: block; font-weight: 600; margin-bottom: 2px; font-size: 0.96rem; }
+  ol.receta p { margin: 0; color: var(--muted); font-size: 0.89rem; }
+  ol.receta .ruta { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--indigo); display: block; margin-top: 5px; }
+
+  .aviso {
+    background: var(--oro-fill); border: 1px solid color-mix(in srgb, var(--oro) 32%, transparent);
+    border-radius: var(--radius); padding: 17px 20px; font-size: 0.93rem; margin-top: 16px;
+  }
+  .aviso strong { color: var(--oro); }
+
+  footer {
+    margin-top: 64px; padding-top: 22px; border-top: 1px solid var(--line);
+    font-size: 0.82rem; color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; gap: 28px; }
+    nav.toc { position: static; }
+    nav.toc ol { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .eslabon { grid-template-columns: 26px 1fr; }
+    .eslabon .q { grid-column: 2; }
+  }
+</style>
+</head>
+<body>
+<div style="background:#161D42;padding:10px 20px;font-family:'Archivo',system-ui,sans-serif;font-size:.85rem;display:flex;gap:18px;flex-wrap:wrap;align-items:center">
+  <span style="color:#8F94F2;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.7rem">LUFORA docs</span>
+  <a href="index.html" style="color:#E9EBF8;text-decoration:none">Manual</a>
+  <a href="plano.html" style="color:#E9EBF8;text-decoration:none">Plano y fases</a>
+  <a href="hexagonal.html" style="color:#E9EBF8;text-decoration:none">Hexagonal</a>
+</div>
+
+
+<div class="shell">
+
+  <nav class="toc" aria-label="Contenido del manual">
+    <p>Contenido</p>
+    <ol>
+      <li><a href="#metodo">Cómo pienso el problema</a></li>
+      <li><a href="#orden">El orden de construcción</a></li>
+      <li><a href="#mapa">Mapa de carpetas</a></li>
+      <li><a href="#arranque">Arranque y configuración</a></li>
+      <li><a href="#basedatos">La base de datos</a></li>
+      <li><a href="#comunes">Piezas compartidas</a></li>
+      <li><a href="#dominio">El dominio</a></li>
+      <li><a href="#datos">Acceso a datos</a></li>
+      <li><a href="#dtos">DTOs y mapper</a></li>
+      <li><a href="#servicios">Los servicios</a></li>
+      <li><a href="#controllers">Los controllers</a></li>
+      <li><a href="#anotaciones">Anotaciones</a></li>
+      <li><a href="#receta">Receta: módulo nuevo</a></li>
+      <li><a href="#produccion">Producción y GitHub</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header>
+      <p class="eyebrow">LUFORA S.A.S. · Backend</p>
+      <h1>Manual del backend LUFORA</h1>
+      <p class="lede">
+        Qué hace cada archivo, por qué existe y qué se rompería si no estuviera.
+        Escrito para que puedas construir el siguiente módulo tú mismo, con el
+        mismo criterio con el que se construyó este.
+      </p>
+    </header>
+
+    <!-- ============ 1. MÉTODO ============ -->
+    <section id="metodo">
+      <h2>Cómo pienso el problema antes de escribir código</h2>
+      <p class="sub">
+        Ningún archivo del proyecto se decidió mientras se escribía. Todos salen
+        de estas cinco preguntas, en este orden.
+      </p>
+
+      <ol class="metodo">
+        <li>
+          <div>
+            <strong>¿Qué vende el negocio, en una frase?</strong>
+            <p>De la frase salen los sustantivos, y los sustantivos son casi siempre las tablas.</p>
+            <div class="ej">"LUFORA vende productos tecnológicos de varias marcas, organizados por categoría, con stock y garantía." → producto, marca, categoría, stock, garantía.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>¿Qué preguntas le van a hacer a la API?</strong>
+            <p>Diseñar desde las preguntas reales evita construir lo que nadie pide. Cada pregunta se convierte en un endpoint o en un filtro.</p>
+            <div class="ej">"Dame los portátiles de menos de 3 millones" → filtros de categoría y precio. "Abre este producto desde un enlace" → obliga a tener <code>slug</code>, no solo <code>id</code>.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>¿Qué NO va a existir todavía?</strong>
+            <p>Decidir lo que se deja fuera es la mitad del diseño. Lo que no está no se mantiene, no se prueba y no se rompe.</p>
+            <div class="ej">En la Fase 1 no hay usuarios, ni carrito, ni pagos, ni historial de inventario. El catálogo funciona sin nada de eso.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>¿Qué se puede construir primero?</strong>
+            <p>Lo que no depende de nada más. Esa es toda la lógica del orden de las fases.</p>
+            <div class="ej">El catálogo no necesita usuarios. Los pedidos sí — necesitan saber quién compra. Por eso el catálogo va primero y pedidos va cuarto.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>¿Qué va a cambiar seguro?</strong>
+            <p>Lo que va a cambiar se aísla; lo que es estable se escribe directo. Este es el criterio que decide dónde poner una interfaz y dónde no.</p>
+            <div class="ej">El proveedor de pagos puede cambiar → interfaz. Guardar un producto en MySQL no va a cambiar → código directo.</div>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ============ 2. ORDEN ============ -->
+    <section id="orden">
+      <h2>El orden de construcción</h2>
+      <p class="sub">
+        Cada paso solo depende de los anteriores. Si lo inviertes, te quedas
+        escribiendo código contra cosas que todavía no existen.
+      </p>
+
+      <div class="cadena">
+        <div class="eslabon"><span class="i">01</span><span class="f">pom.xml</span><span class="q">Qué librerías existen. Sin esto, ningún import compila.</span></div>
+        <div class="eslabon"><span class="i">02</span><span class="f">application.yml</span><span class="q">Cómo se conecta a la base y en qué puerto escucha.</span></div>
+        <div class="eslabon"><span class="i">03</span><span class="f">V1__esquema.sql</span><span class="q">Las tablas. El esquema manda: la entidad se adapta a la tabla, no al revés.</span></div>
+        <div class="eslabon"><span class="i">04</span><span class="f">domain/</span><span class="q">Las entidades, que reflejan esas tablas.</span></div>
+        <div class="eslabon"><span class="i">05</span><span class="f">repository/</span><span class="q">Cómo se consultan. Necesita que la entidad exista.</span></div>
+        <div class="eslabon"><span class="i">06</span><span class="f">dto/</span><span class="q">Qué entra y qué sale por la API. Se decide antes del service.</span></div>
+        <div class="eslabon"><span class="i">07</span><span class="f">mapper/</span><span class="q">El puente entre entidad y DTO. Necesita ambos.</span></div>
+        <div class="eslabon"><span class="i">08</span><span class="f">service/</span><span class="q">Las reglas del negocio. Usa repository y mapper.</span></div>
+        <div class="eslabon"><span class="i">09</span><span class="f">web/</span><span class="q">La puerta HTTP. Es lo último porque solo delega.</span></div>
+        <div class="eslabon"><span class="i">10</span><span class="f">peticiones.http</span><span class="q">Probar de verdad lo que acabas de construir.</span></div>
+      </div>
+
+      <div class="aviso">
+        <strong>Por qué la base de datos va antes que la entidad.</strong>
+        Podrías dejar que Hibernate genere las tablas desde tus clases. No lo
+        hacemos: en este proyecto Hibernate está en modo <code>validate</code>,
+        que solo verifica y nunca modifica. La razón es que el esquema es lo más
+        difícil de corregir después — cuando ya hay datos reales dentro. Escribirlo
+        a mano te obliga a pensarlo, y cada cambio queda versionado en git como
+        un archivo <code>V2</code>, <code>V3</code>, <code>V4</code>.
+      </div>
+    </section>
+
+    <!-- ============ 3. MAPA ============ -->
+    <section id="mapa">
+      <h2>Mapa de carpetas</h2>
+      <p class="sub">
+        Dos niveles: primero por módulo de negocio, y dentro de cada módulo, por capa.
+      </p>
+
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>Carpeta</th><th>Qué vive ahí</th><th>Regla para decidir</th></tr></thead>
+          <tbody>
+            <tr><td class="don">config/</td><td>Ajustes globales de la app</td><td>¿Afecta a toda la aplicación, no a un módulo? Va aquí.</td></tr>
+            <tr><td class="don">common/</td><td>Piezas que usan todos los módulos</td><td>¿Lo van a usar catálogo, inventario y pedidos por igual? Aquí.</td></tr>
+            <tr><td class="don">catalogo/domain/</td><td>Entidades: lo que se guarda</td><td>¿Es una tabla de la base de datos? Aquí.</td></tr>
+            <tr><td class="don">catalogo/repository/</td><td>Consultas a la base</td><td>¿Habla con MySQL? Aquí.</td></tr>
+            <tr><td class="don">catalogo/dto/</td><td>Lo que entra y sale por HTTP</td><td>¿El cliente lo ve o lo envía? Aquí.</td></tr>
+            <tr><td class="don">catalogo/mapper/</td><td>Traducción entidad ↔ DTO</td><td>Solo conversión, sin reglas.</td></tr>
+            <tr><td class="don">catalogo/service/</td><td>Las reglas del negocio</td><td>¿Es una decisión, una validación o una transacción? Aquí.</td></tr>
+            <tr><td class="don">catalogo/spec/</td><td>Filtros de búsqueda</td><td>Detalle de cómo se consulta; podría vivir en repository.</td></tr>
+            <tr><td class="don">catalogo/web/</td><td>Controllers REST</td><td>¿Define una URL? Aquí. Y nada más.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 4. ARRANQUE ============ -->
+    <section id="arranque">
+      <h2>Arranque y configuración</h2>
+      <p class="sub">Los cinco archivos que hacen que la aplicación exista y se levante.</p>
+
+      <div class="fichas">
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">pom.xml</span><span class="capa k-cfg">Configuración</span></div>
+          <p>La lista de librerías del proyecto y cómo se empaqueta. Maven lee este archivo, descarga cada dependencia y las pone a disposición del compilador.</p>
+          <span class="et">Lo clave</span>
+          <p>Hereda de <code>spring-boot-starter-parent</code>. Eso significa que no escribes versiones para casi nada: Spring Boot ya decidió qué versión de cada librería funciona bien con las demás. Es la razón por la que un proyecto Spring "simplemente funciona" mientras que armar las versiones a mano es una pesadilla.</p>
+          <div class="sin"><b>Sin él:</b> no existe proyecto. Maven no sabría qué compilar ni con qué.</div>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">LuforaBackendApplication.java</span><span class="capa k-cfg">Configuración</span></div>
+          <p>El punto de arranque. Tiene el <code>main</code> que levanta todo.</p>
+          <span class="et">Lo clave</span>
+          <p><code>@SpringBootApplication</code> hace tres cosas a la vez: activa la configuración automática, marca esta clase como fuente de configuración, y —lo más importante— escanea todos los paquetes <em>por debajo</em> de este. Por eso la clase vive en <code>com.lufora.tienda</code> y no en una subcarpeta: si estuviera más abajo, Spring no encontraría tus controllers.</p>
+          <p><code>@EnableJpaAuditing</code> es lo que hace que las fechas de creación se llenen solas.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">application.yml</span><span class="capa k-cfg">Configuración</span></div>
+          <p>Datos de conexión, puerto, comportamiento de Hibernate y Flyway.</p>
+          <span class="et">Lo clave</span>
+          <p>Las credenciales se escriben como <code>${DB_USER:lufora}</code>: usa la variable de entorno si existe, y si no, el valor por defecto. Así el mismo archivo sirve en tu máquina y en producción sin tener contraseñas escritas dentro.</p>
+          <p><code>open-in-view: false</code> evita un problema clásico: sin eso, Spring deja la conexión a la base abierta mientras se genera el JSON, y las consultas se disparan sin que te des cuenta.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">config/WebConfig.java</span><span class="capa k-cfg">Configuración</span></div>
+          <p>Permite que tu frontend, que corre en otro puerto, pueda llamar a la API.</p>
+          <span class="et">Lo clave</span>
+          <p>El navegador bloquea por seguridad las llamadas entre orígenes distintos. Esto es CORS. Aquí se declara qué orígenes tienen permiso, leídos desde <code>application.yml</code> para no dejarlos escritos en el código.</p>
+          <div class="sin"><b>Sin él:</b> tu frontend recibiría un error de CORS en el navegador y no podría consumir nada, aunque la API funcione perfecto desde Postman.</div>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">config/OpenApiConfig.java</span><span class="capa k-cfg">Configuración</span></div>
+          <p>Le pone título y descripción a la documentación automática en <code>/docs</code>.</p>
+          <span class="et">Lo clave</span>
+          <p>Springdoc lee tus controllers y genera Swagger solo. Esta clase solo personaliza la portada. El valor real es que quien construya el frontend consulta la API sin preguntarte nada.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ 5. BASE DE DATOS ============ -->
+    <section id="basedatos">
+      <h2>La base de datos</h2>
+      <p class="sub">
+        Flyway ejecuta estos archivos en orden la primera vez que arranca la app,
+        y lleva registro de cuáles ya aplicó en una tabla propia.
+      </p>
+
+      <div class="fichas">
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">V1__esquema_catalogo.sql</span><span class="capa k-datos">Base de datos</span></div>
+          <p>Crea las cuatro tablas: <code>marcas</code>, <code>categorias</code>, <code>productos</code> y <code>producto_imagenes</code>.</p>
+          <span class="et">Decisiones que están dentro</span>
+          <p><b>Claves foráneas reales.</b> La base rechaza un producto con una marca inexistente. La validación en Java puede fallar; la de la base no.</p>
+          <p><b>Restricciones únicas</b> en <code>sku</code> y <code>slug</code>. Aunque dos peticiones lleguen en el mismo milisegundo, no habrá duplicados.</p>
+          <p><b><code>DECIMAL(12,2)</code> para el dinero.</b> Nunca <code>FLOAT</code>: con decimales binarios, sumar centavos da errores de redondeo, y en facturación eso es un problema legal.</p>
+          <p><b>Índices</b> en las columnas por las que se filtra. Sin ellos, buscar por categoría recorre la tabla entera.</p>
+          <p><b><code>ON DELETE CASCADE</code></b> en imágenes: borrar un producto borra sus fotos, sin dejar basura.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">V2__datos_demo.sql</span><span class="capa k-datos">Base de datos</span></div>
+          <p>Marcas, categorías y tres productos de ejemplo, para que la API responda algo desde el primer arranque.</p>
+          <div class="sin"><b>Antes de producción:</b> bórralo. Son datos de prueba, no tu catálogo.</div>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">Cómo nombrar las siguientes</span><span class="capa k-datos">Base de datos</span></div>
+          <p>El formato es obligatorio: <code>V</code> + número + <code>__</code> (dos guiones bajos) + descripción.</p>
+          <pre class="snip">V3__inventario.sql
+V4__usuarios_y_roles.sql
+V5__pedidos.sql</pre>
+          <span class="et">La regla que no se rompe</span>
+          <p>Un archivo ya aplicado <b>nunca</b> se edita. Flyway guarda una huella de cada uno; si la cambias, se niega a arrancar. ¿Te equivocaste en V3? Corriges con un V4 nuevo.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ 6. COMUNES ============ -->
+    <section id="comunes">
+      <h2>Piezas compartidas</h2>
+      <p class="sub">
+        Viven en <code>common/</code> porque los tres módulos que faltan las van
+        a usar igual que catálogo.
+      </p>
+
+      <div class="fichas">
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">common/domain/BaseEntity.java</span><span class="capa k-comun">Compartido</span></div>
+          <p>Contiene el <code>id</code> y las fechas de creación y actualización. Todas las entidades la heredan.</p>
+          <span class="et">Lo clave</span>
+          <p>Es <code>@MappedSuperclass</code>: no genera una tabla propia; sus columnas se copian a cada tabla hija. Combinado con <code>@CreatedDate</code>, las fechas se llenan solas — nunca las asignas a mano.</p>
+          <div class="sin"><b>Sin ella:</b> repetirías cuatro campos idénticos en cada entidad, y tarde o temprano se te olvidaría poner la fecha en alguna.</div>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">common/dto/PageResponse.java</span><span class="capa k-comun">Compartido</span></div>
+          <p>El formato de respuesta cuando devuelves una lista paginada.</p>
+          <span class="et">Por qué no devolver la clase Page de Spring</span>
+          <p>Spring tiene su propia clase <code>Page</code>, pero su JSON cambia entre versiones del framework. Si la expusieras, una actualización de Spring rompería tu frontend sin que tocaras una línea. Con esta clase, tú controlas el contrato.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">exception/RecursoNoEncontradoException.java</span><span class="capa k-comun">Compartido</span></div>
+          <p>Se lanza cuando piden algo que no existe. El manejador global la traduce a un <b>404</b>.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">exception/ReglaNegocioException.java</span><span class="capa k-comun">Compartido</span></div>
+          <p>Se lanza cuando la petición es válida pero rompe una regla — un SKU repetido, un stock que quedaría negativo. Se traduce a un <b>409</b>.</p>
+          <span class="et">Por qué dos excepciones y no una</span>
+          <p>Porque significan cosas distintas para quien consume la API. "No existe" y "existe pero no puedes" merecen códigos HTTP diferentes, y el frontend reacciona distinto a cada uno.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">exception/GlobalExceptionHandler.java</span><span class="capa k-comun">Compartido</span></div>
+          <p>Atrapa las excepciones de toda la aplicación y las convierte en respuestas con formato uniforme.</p>
+          <span class="et">Lo clave</span>
+          <p>Es <code>@RestControllerAdvice</code>: Spring lo aplica a todos los controllers sin que ninguno lo sepa. Cada tipo de error tiene su método. El de validación es especialmente útil: devuelve campo por campo qué estuvo mal, en vez de un mensaje genérico.</p>
+          <div class="sin"><b>Sin él:</b> cada controller tendría bloques try/catch repetidos, y los errores saldrían con formatos distintos según dónde ocurrieran. Peor: Spring devolvería trazas internas al cliente.</div>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">exception/ErrorResponse.java</span><span class="capa k-comun">Compartido</span></div>
+          <p>La forma exacta de un error: momento, código, mensaje, ruta y, si aplica, los campos inválidos.</p>
+          <p>Es un <code>record</code>: una clase inmutable en una línea, sin getters escritos a mano. Java 21 los hace ideales para DTOs.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">util/SlugUtil.java</span><span class="capa k-comun">Compartido</span></div>
+          <p>Convierte <code>"Portátil Lenovo 15\""</code> en <code>portatil-lenovo-15</code>.</p>
+          <span class="et">Para qué sirve realmente</span>
+          <p>Para que las URLs sean legibles: <code>/productos/slug/portatil-lenovo-15</code> en vez de <code>/productos/847</code>. Google indexa mejor la primera y el cliente entiende dónde está parado.</p>
+          <p>Es la única clase con test unitario, por una razón: es lógica pura, sin base de datos ni framework. Ese tipo de código es el más fácil y el más rentable de probar.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ 7. DOMINIO ============ -->
+    <section id="dominio">
+      <h2>El dominio</h2>
+      <p class="sub">
+        Las clases que se corresponden con las tablas. Cada campo es una columna;
+        cada relación, una clave foránea.
+      </p>
+
+      <div class="fichas">
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">domain/Producto.java</span><span class="capa k-dom">Dominio</span></div>
+          <p>La entidad central. Todo lo demás gira alrededor de ella.</p>
+          <span class="et">Detalles que importan</span>
+          <p><b>Relaciones en <code>LAZY</code>.</b> Al cargar un producto no se trae automáticamente su marca ni su categoría; se traen solo si alguien las pide. Con <code>EAGER</code>, listar 50 productos dispararía decenas de consultas extra.</p>
+          <p><b><code>@Enumerated(EnumType.STRING)</code></b> guarda <code>"NUEVO"</code> como texto, no como número. Si guardaras el número y mañana reordenas el enum, todos los datos viejos cambiarían de significado en silencio.</p>
+          <p><b>Métodos con reglas dentro</b>: <code>hayStock()</code> y <code>stockEnMinimo()</code>. La entidad no es solo un contenedor de datos; sabe responder preguntas sobre sí misma. Eso evita repetir la misma comparación en cinco servicios distintos.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">domain/Marca.java · Categoria.java</span><span class="capa k-dom">Dominio</span></div>
+          <p>Tablas de apoyo del catálogo.</p>
+          <span class="et">Lo interesante de Categoria</span>
+          <p>Tiene una relación consigo misma (<code>categoriaPadre</code>). Eso permite subcategorías —"Celulares" → "Gama alta"— sin crear tablas nuevas. Cuando el padre es nulo, es una categoría raíz, y de ahí sale el menú del sitio.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">domain/ProductoImagen.java</span><span class="capa k-dom">Dominio</span></div>
+          <p>Las fotos de un producto, con orden y marca de cuál es la principal.</p>
+          <span class="et">Lo clave</span>
+          <p>La relación desde Producto lleva <code>cascade = ALL</code> y <code>orphanRemoval = true</code>: guardar el producto guarda sus imágenes, y quitar una de la lista la borra de la base. La lista se mantiene ordenada con <code>@OrderBy</code>.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">domain/EstadoProducto.java</span><span class="capa k-dom">Dominio</span></div>
+          <p>Un enum: <code>NUEVO</code>, <code>REACONDICIONADO</code>, <code>USADO</code>.</p>
+          <p>Usar un enum en vez de texto libre hace imposible escribir "nuevoo". El compilador lo impide antes de que llegue a la base.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ 8. DATOS ============ -->
+    <section id="datos">
+      <h2>Acceso a datos</h2>
+      <p class="sub">Cómo se consulta la base sin escribir SQL a mano.</p>
+
+      <div class="fichas">
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">repository/ProductoRepository.java</span><span class="capa k-datos">Datos</span></div>
+          <p>Una <b>interfaz</b> sin implementación. Spring genera la clase real al arrancar.</p>
+          <span class="et">Cómo funciona por dentro</span>
+          <p>Spring Data lee el <em>nombre</em> del método y construye la consulta:</p>
+          <pre class="snip">findByDestacadoTrueAndActivoTrue()
+→ WHERE destacado = true AND activo = true
+
+findBySlug(String slug)
+→ WHERE slug = ?</pre>
+          <p>Cuando el nombre se volvería impronunciable, se escribe la consulta con <code>@Query</code> — como en <code>findConStockBajo()</code>, que compara dos columnas entre sí.</p>
+          <p>Hereda también de <code>JpaSpecificationExecutor</code>, y eso es lo que habilita la búsqueda con filtros combinables.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">spec/ProductoSpecs.java</span><span class="capa k-datos">Datos</span></div>
+          <p>Cada filtro de búsqueda como una pieza suelta que se puede combinar con las demás.</p>
+          <span class="et">El problema que resuelve</span>
+          <p>La búsqueda tiene siete filtros opcionales. Escribir un método por combinación serían más de cien métodos. Aquí cada filtro es independiente y <b>devuelve <code>null</code> cuando no aplica</b>; el service solo suma los que llegaron con valor, y Spring arma una única consulta SQL con lo que quedó.</p>
+          <div class="sin"><b>Sin esto:</b> terminarías construyendo SQL pegando texto, que es lento de mantener y abre la puerta a inyección SQL.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ 9. DTOs ============ -->
+    <section id="dtos">
+      <h2>DTOs y mapper</h2>
+      <p class="sub">
+        DTO significa objeto de transferencia: lo que viaja entre tu API y quien
+        la consume. Nunca viaja la entidad.
+      </p>
+
+      <div class="fichas">
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">dto/ProductoRequest.java</span><span class="capa k-web">Entrada</span></div>
+          <p>Lo que el cliente <b>envía</b> para crear o actualizar un producto.</p>
+          <span class="et">Lo clave</span>
+          <p>Las anotaciones (<code>@NotBlank</code>, <code>@DecimalMin</code>, <code>@Min</code>) validan antes de que el código del service se ejecute. Si algo falla, el manejador global responde 400 con la lista de campos malos.</p>
+          <p>Fíjate que recibe <code>marcaId</code>, no un objeto Marca completo. El cliente manda identificadores; el service resuelve los objetos.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">dto/ProductoResponse.java</span><span class="capa k-web">Salida</span></div>
+          <p>El detalle completo que <b>devuelve</b> la API.</p>
+          <span class="et">Aquí está la razón de ser de todo esto</span>
+          <p>La entidad <code>Producto</code> tiene un campo <code>costo</code> — lo que te costó a ti. Este DTO <b>no lo incluye</b>. Si devolvieras la entidad directamente, tu margen de ganancia estaría publicado en internet para cualquiera que abra las herramientas de desarrollador.</p>
+          <p>También agrega <code>disponible</code>, un campo calculado que no existe en la base: se deduce del stock.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">dto/ProductoResumenResponse.java</span><span class="capa k-web">Salida</span></div>
+          <p>Versión liviana para los listados.</p>
+          <span class="et">Por qué existen dos DTOs de salida</span>
+          <p>Una grilla de 12 productos no necesita la descripción completa ni todas las imágenes de cada uno. Mandar solo lo que la pantalla muestra hace la respuesta varias veces más pequeña — y en móvil con datos, eso se nota.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">dto/ProductoFiltro.java</span><span class="capa k-web">Entrada</span></div>
+          <p>Agrupa los siete parámetros de búsqueda en un solo objeto.</p>
+          <p>Sin él, el service recibiría siete argumentos sueltos y agregar un filtro nuevo obligaría a cambiar la firma del método en varios sitios.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">mapper/CatalogoMapper.java</span><span class="capa k-app">Aplicación</span></div>
+          <p>Convierte entidades en DTOs. Un solo lugar, escrito a mano.</p>
+          <span class="et">Por qué a mano y no con una librería</span>
+          <p>Existe MapStruct, que genera esto automáticamente. Se hizo manual a propósito: es explícito, se lee sin conocer otra herramienta, y no agrega dependencias. Cuando el proyecto tenga treinta entidades, ahí sí vale la pena cambiarlo.</p>
+          <p>Nótese que aquí es donde se decide qué campos se ocultan y cuáles se calculan. Es el guardián del contrato de tu API.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ 10. SERVICIOS ============ -->
+    <section id="servicios">
+      <h2>Los servicios</h2>
+      <p class="sub">
+        Donde vive el negocio. Si algún día migras a otro framework web, esta es
+        la capa que sobrevive.
+      </p>
+
+      <div class="fichas">
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">service/ProductoService.java</span><span class="capa k-app">Aplicación</span></div>
+          <p>Crear, actualizar, buscar, ajustar stock y desactivar productos.</p>
+
+          <span class="et">Las transacciones</span>
+          <p>La clase lleva <code>@Transactional(readOnly = true)</code> y los métodos que escriben lo sobrescriben con <code>@Transactional</code>. Una transacción es todo o nada: si algo falla a mitad, se deshace completo. El modo solo-lectura además le permite a la base optimizar las consultas.</p>
+
+          <span class="et">Un detalle que se ve pequeño y no lo es</span>
+          <p>En los métodos de actualización <b>no se llama a <code>save()</code></b>. Dentro de una transacción, JPA detecta los cambios sobre un objeto cargado y los guarda al terminar. Se llama <em>dirty checking</em>. Sorprende la primera vez que se ve.</p>
+
+          <span class="et">Slugs únicos</span>
+          <p>Si ya existe <code>portatil-lenovo</code>, el siguiente será <code>portatil-lenovo-2</code>. Sin eso, la restricción única de la base rechazaría el segundo producto con un error feo.</p>
+
+          <span class="et">Validaciones que la base no puede hacer</span>
+          <p>Que un ajuste no deje el stock negativo, o que el SKU no esté tomado por otro producto. Son decisiones de negocio, y por eso viven aquí y no en el controller.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">service/MarcaService.java · CategoriaService.java</span><span class="capa k-app">Aplicación</span></div>
+          <p>El mismo patrón, más simples.</p>
+          <span class="et">La regla que protege el menú</span>
+          <p><code>CategoriaService</code> impide que una categoría sea su propia madre. Sin esa validación, armar el menú del sitio entraría en un ciclo infinito.</p>
+          <span class="et">Borrado lógico</span>
+          <p>Los tres servicios "borran" poniendo <code>activo = false</code>. Un producto borrado de verdad rompería el historial de pedidos que lo referencian — y ese historial es tu contabilidad.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ 11. CONTROLLERS ============ -->
+    <section id="controllers">
+      <h2>Los controllers</h2>
+      <p class="sub">
+        La puerta HTTP. Son los archivos más cortos del proyecto, y así debe ser.
+      </p>
+
+      <div class="fichas">
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">web/ProductoController.java</span><span class="capa k-web">Web</span></div>
+          <p>Nueve endpoints. Ninguno decide nada: reciben, delegan y responden.</p>
+
+          <span class="et">Las URLs llevan versión</span>
+          <p><code>/api/v1/productos</code>. Cuando necesites cambiar el formato de respuesta sin romper a quien ya consume la API, publicas <code>/v2</code> y ambas conviven. Agregarlo después es carísimo.</p>
+
+          <span class="et">Dos formas de pedir un producto</span>
+          <p>Por <code>id</code> para uso interno, y por <code>slug</code> para las URLs públicas del sitio. Misma información, distinto camino.</p>
+
+          <span class="et">Los códigos HTTP correctos</span>
+          <p>Crear devuelve <b>201</b> con la cabecera <code>Location</code> apuntando al recurso nuevo. Desactivar devuelve <b>204</b>, sin cuerpo. Son convenciones que cualquier cliente REST espera.</p>
+
+          <span class="et">La paginación viene gratis</span>
+          <p><code>@PageableDefault</code> hace que <code>?page=0&amp;size=12&amp;sort=precio,asc</code> funcione sin escribir nada. Sin paginación, el día que tengas 5.000 productos una sola petición tumbaría la aplicación.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">web/MarcaController.java · CategoriaController.java</span><span class="capa k-web">Web</span></div>
+          <p>CRUD estándar sobre marcas y categorías, con el mismo patrón.</p>
+          <p><code>?soloActivas=true</code> y <code>?soloRaices=true</code> permiten que el mismo endpoint sirva al panel de administración y al menú público.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">peticiones.http</span><span class="capa k-web">Web</span></div>
+          <p>Todas las llamadas listas para ejecutar desde IntelliJ o desde VS Code con la extensión REST Client.</p>
+          <p>Vive dentro del repositorio a propósito: cuando alguien más entre al proyecto, no tiene que adivinar cómo se usa la API.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ 12. ANOTACIONES ============ -->
+    <section id="anotaciones">
+      <h2>Las anotaciones, traducidas</h2>
+      <p class="sub">
+        Cada <code>@</code> le dice algo al framework. Estas son todas las que
+        aparecen en el proyecto.
+      </p>
+
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>Anotación</th><th>Qué hace</th><th>Dónde</th></tr></thead>
+          <tbody>
+            <tr><td class="anot">@SpringBootApplication</td><td>Arranca la app y escanea los paquetes por debajo</td><td class="don">Application</td></tr>
+            <tr><td class="anot">@EnableJpaAuditing</td><td>Activa el llenado automático de fechas</td><td class="don">Application</td></tr>
+            <tr><td class="anot">@Entity · @Table</td><td>Esta clase es una tabla, y se llama así</td><td class="don">domain/</td></tr>
+            <tr><td class="anot">@Id · @GeneratedValue</td><td>Clave primaria que la base autoincrementa</td><td class="don">BaseEntity</td></tr>
+            <tr><td class="anot">@Column</td><td>Nombre, largo y si acepta nulos</td><td class="don">domain/</td></tr>
+            <tr><td class="anot">@ManyToOne</td><td>Muchos productos, una marca</td><td class="don">Producto</td></tr>
+            <tr><td class="anot">@OneToMany</td><td>Un producto, muchas imágenes</td><td class="don">Producto</td></tr>
+            <tr><td class="anot">@Enumerated(STRING)</td><td>Guarda el enum como texto, no como número</td><td class="don">Producto</td></tr>
+            <tr><td class="anot">@MappedSuperclass</td><td>Clase heredable que no es tabla</td><td class="don">BaseEntity</td></tr>
+            <tr><td class="anot">@Getter · @Setter · @Builder</td><td>Lombok escribe el código repetitivo</td><td class="don">domain/</td></tr>
+            <tr><td class="anot">@RequiredArgsConstructor</td><td>Constructor con los campos final: así se inyectan las dependencias</td><td class="don">service/ web/</td></tr>
+            <tr><td class="anot">@Service · @Component</td><td>Spring crea y administra esta clase</td><td class="don">service/ mapper/</td></tr>
+            <tr><td class="anot">@Transactional</td><td>Todo o nada; deshace si algo falla</td><td class="don">service/</td></tr>
+            <tr><td class="anot">@RestController</td><td>Controller cuyas respuestas se serializan a JSON</td><td class="don">web/</td></tr>
+            <tr><td class="anot">@GetMapping · @PostMapping…</td><td>Une un método HTTP y una ruta a una función</td><td class="don">web/</td></tr>
+            <tr><td class="anot">@PathVariable</td><td>Toma un valor de la URL</td><td class="don">web/</td></tr>
+            <tr><td class="anot">@RequestParam</td><td>Toma un valor de la query string</td><td class="don">web/</td></tr>
+            <tr><td class="anot">@RequestBody</td><td>Convierte el JSON recibido en un objeto</td><td class="don">web/</td></tr>
+            <tr><td class="anot">@Valid</td><td>Aplica las validaciones del DTO antes de entrar</td><td class="don">web/</td></tr>
+            <tr><td class="anot">@RestControllerAdvice</td><td>Manejo de errores para todos los controllers</td><td class="don">exception/</td></tr>
+            <tr><td class="anot">@Configuration · @Bean</td><td>Declara objetos que Spring debe administrar</td><td class="don">config/</td></tr>
+            <tr><td class="anot">@Value</td><td>Lee un valor de application.yml</td><td class="don">WebConfig</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 13. RECETA ============ -->
+    <section id="receta">
+      <h2>Receta: construir el módulo de inventario</h2>
+      <p class="sub">
+        Tu Fase 2, paso a paso. Sigue este orden y el proyecto compila después de
+        cada paso. Es el mismo camino que se usó para catálogo.
+      </p>
+
+      <ol class="receta">
+        <li><div>
+          <strong>Define qué guardas, en papel</strong>
+          <p>Un movimiento tiene: producto, tipo (entrada, salida o ajuste), cantidad, motivo, fecha y quién lo hizo. Escríbelo antes de tocar el teclado.</p>
+        </div></li>
+        <li><div>
+          <strong>Escribe la migración</strong>
+          <p>La tabla <code>movimientos_inventario</code> con su clave foránea al producto y un índice por producto y fecha.</p>
+          <span class="ruta">resources/db/migration/V3__inventario.sql</span>
+        </div></li>
+        <li><div>
+          <strong>Crea el módulo</strong>
+          <p>Una carpeta hermana de <code>catalogo</code>, con las mismas subcarpetas.</p>
+          <span class="ruta">tienda/inventario/{domain, repository, dto, service, web}</span>
+        </div></li>
+        <li><div>
+          <strong>El enum y la entidad</strong>
+          <p><code>TipoMovimiento</code> y <code>MovimientoInventario extends BaseEntity</code>, con la relación al producto en <code>LAZY</code>.</p>
+          <span class="ruta">inventario/domain/</span>
+        </div></li>
+        <li><div>
+          <strong>El repositorio</strong>
+          <p>Buscar movimientos por producto ordenados por fecha, y por rango de fechas para los reportes.</p>
+          <span class="ruta">inventario/repository/</span>
+        </div></li>
+        <li><div>
+          <strong>Los DTOs</strong>
+          <p>Uno de entrada para registrar el movimiento, uno de salida para mostrarlo con el nombre del producto ya resuelto.</p>
+          <span class="ruta">inventario/dto/</span>
+        </div></li>
+        <li><div>
+          <strong>El servicio — aquí está lo importante</strong>
+          <p>Registrar el movimiento y actualizar el stock del producto deben ocurrir <b>dentro de la misma transacción</b>. Si se guarda el movimiento pero falla el stock, tu inventario queda mintiendo. Un solo método con <code>@Transactional</code> resuelve esto.</p>
+          <span class="ruta">inventario/service/InventarioService</span>
+        </div></li>
+        <li><div>
+          <strong>El controller</strong>
+          <p>Registrar un movimiento y consultar el historial de un producto.</p>
+          <span class="ruta">inventario/web/InventarioController</span>
+        </div></li>
+        <li><div>
+          <strong>Jubila el ajuste viejo</strong>
+          <p>El <code>PATCH /productos/{id}/stock</code> actual deja de usarse: ahora todo movimiento pasa por inventario y queda registrado.</p>
+        </div></li>
+        <li><div>
+          <strong>Pruébalo</strong>
+          <p>Agrega las llamadas nuevas a <code>peticiones.http</code> y verifica que el stock del producto cambie al registrar un movimiento.</p>
+        </div></li>
+      </ol>
+
+      <div class="aviso">
+        <strong>Cuando dudes dónde va un archivo</strong>, hazte la pregunta de la
+        capa: ¿define una URL? Va en <code>web/</code>. ¿Toma una decisión o
+        valida una regla? Va en <code>service/</code>. ¿Habla con la base? Va en
+        <code>repository/</code>. ¿Es una tabla? Va en <code>domain/</code>.
+        ¿Lo van a usar otros módulos? Va en <code>common/</code>.
+      </div>
+    </section>
+
+    <!-- ============ 14. PRODUCCIÓN ============ -->
+    <section id="produccion">
+      <h2>Producción y GitHub</h2>
+      <p class="sub">
+        Los archivos que no son código de la aplicación pero deciden si el
+        proyecto es serio o no.
+      </p>
+
+      <div class="fichas">
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">Dockerfile</span><span class="capa k-cfg">Producción</span></div>
+          <p>Construcción en dos etapas: la primera compila con Maven, la segunda copia solo el <code>.jar</code> a una imagen con únicamente el Java necesario para ejecutar.</p>
+          <span class="et">Por qué dos etapas</span>
+          <p>La imagen final no lleva Maven, ni el compilador, ni tu código fuente. Pesa una fracción y expone mucho menos. Además corre con un usuario sin privilegios, no como root.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">.github/workflows/ci.yml</span><span class="capa k-cfg">Producción</span></div>
+          <p>En cada push, GitHub compila el proyecto y corre los tests contra un MySQL real, no una base falsa en memoria.</p>
+          <span class="et">Por qué MySQL de verdad</span>
+          <p>Porque una base en memoria acepta cosas que MySQL rechaza. Si pruebas contra algo distinto a producción, los tests pasan y el despliegue falla.</p>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">.gitignore · .env.example</span><span class="capa k-cfg">Producción</span></div>
+          <p>El primero bloquea que subas credenciales, compilados o archivos del IDE. El segundo documenta qué variables hay que configurar, sin contener ningún valor real.</p>
+          <div class="sin"><b>Esto no es opcional:</b> una contraseña subida a git queda en el historial para siempre, aunque borres el archivo después.</div>
+        </div>
+
+        <div class="ficha">
+          <div class="ficha-cab"><span class="ficha-nom">docker-compose.yml</span><span class="capa k-cfg">Desarrollo</span></div>
+          <p>Levanta MySQL con un comando, sin instalar nada en tu equipo. Los datos sobreviven a reinicios gracias a un volumen.</p>
+          <p><code>docker compose down -v</code> borra ese volumen: úsalo cuando quieras empezar de cero.</p>
+        </div>
+
+      </div>
+
+      <h3 class="grupo">Subirlo a GitHub</h3>
+      <p>Crea el repositorio vacío en GitHub —sin README, sin licencia— y desde la carpeta del proyecto:</p>
+      <pre class="snip">git init -b main
+git add .
+git commit -m "Fase 1: modulo de catalogo"
+git remote add origin https://github.com/TU_USUARIO/lufora-backend.git
+git push -u origin main</pre>
+      <p>Antes de subir, revisa que <code>.env</code> no aparezca en <code>git status</code>. Y elige repositorio <b>privado</b>: este es el código de tu empresa.</p>
+    </section>
+
+    <footer>
+      LUFORA S.A.S. · Manual del backend · Fase 1 de 6 · Actualízalo cuando
+      agregues un módulo: un proyecto sin documentación se vuelve ajeno en tres meses.
+    </footer>
+
+  </main>
+</div>
+
+</body>
+</html>
